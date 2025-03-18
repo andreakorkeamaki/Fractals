@@ -1,19 +1,74 @@
+// Aggiungere dichiarazioni di tipo per i moduli mancanti all'inizio del file
 "use client"
 
-import { useRef, useState, useMemo, useCallback } from "react"
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from "@react-three/fiber"
 import { OrbitControls, shaderMaterial } from "@react-three/drei"
-import * as THREE from "three"
+// @ts-ignore
+import { useControls, button, folder } from "leva"
+// @ts-ignore
+import { saveAs } from "file-saver"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings, Palette, Download, RepeatIcon as Record, Square } from "lucide-react"
+import { Settings, Palette, Download, Square, Video as Record } from "lucide-react"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      instancedMesh: any;
+      planeGeometry: any;
+      fractalMaterial: any;
+      instancedBufferAttribute: any;
+      div: any;
+      span: any;
+      h4: any;
+      p: any;
+      button: any;
+      input: any;
+      label: any;
+      select: any;
+      option: any;
+    }
+  }
+}
+
+interface RecordingResolution {
+  width: number;
+  height: number;
+}
+
+interface FractalCurvesProps {
+  blendFactors: THREE.Vector3;
+  blendMethod: number;
+  colorSet: number;
+  useCustomColors: boolean;
+  customColors: {
+    start: string;
+    middle: string;
+    end: string;
+  };
+  animationSpeed: number;
+  elementSize: number;
+  depth: number;
+  colorAnimationSpeed: number;
+  colorInterpolationMethod: number;
+}
+
+interface CustomColors {
+  start: string;
+  middle: string;
+  end: string;
+  [key: string]: string;
+}
 
 const FractalMaterial = shaderMaterial(
   {
@@ -31,7 +86,7 @@ const FractalMaterial = shaderMaterial(
     colorAnimationSpeed: 1,
     colorInterpolationMethod: 0,
   },
-  // Vertex Shader (unchanged)
+  // Vertex Shader 
   `
   attribute float index;
   uniform float time;
@@ -127,7 +182,7 @@ const FractalMaterial = shaderMaterial(
     vIndex = index;
   }
   `,
-  // Fragment Shader (unchanged)
+  // Fragment Shader 
   `
   uniform float time;
   uniform int colorSet;
@@ -199,7 +254,7 @@ const FractalMaterial = shaderMaterial(
 
 extend({ FractalMaterial })
 
-const FractalCurves = ({
+const FractalCurves: React.FC<FractalCurvesProps> = ({
   blendFactors,
   blendMethod,
   colorSet,
@@ -211,86 +266,327 @@ const FractalCurves = ({
   colorAnimationSpeed,
   colorInterpolationMethod,
 }) => {
-  const mesh = useRef()
-  const instanceCount = 5000
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const instanceCount = 5000;
 
   const indices = useMemo(() => {
-    const temp = new Float32Array(instanceCount)
+    const temp = new Float32Array(instanceCount);
     for (let i = 0; i < instanceCount; i++) {
-      temp[i] = i
+      temp[i] = i;
     }
-    return temp
-  }, [])
+    return temp;
+  }, []);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.time.value = 0;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mesh.current) {
+      const vector = mesh.current.material.uniforms.blendFactors.value;
+      vector.x = blendFactors.x;
+      vector.y = blendFactors.y;
+      vector.z = blendFactors.z;
+    }
+  }, [blendFactors]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.blendMethod.value = blendMethod;
+    }
+  }, [blendMethod]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.colorSet.value = colorSet;
+    }
+  }, [colorSet]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.useCustomColors.value = useCustomColors;
+    }
+  }, [useCustomColors]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.customColorStart.value = new THREE.Color(customColors.start);
+    }
+  }, [customColors.start]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.customColorMiddle.value = new THREE.Color(customColors.middle);
+    }
+  }, [customColors.middle]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.customColorEnd.value = new THREE.Color(customColors.end);
+    }
+  }, [customColors.end]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.animationSpeed.value = animationSpeed;
+    }
+  }, [animationSpeed]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.elementSize.value = elementSize;
+    }
+  }, [elementSize]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.depth.value = depth;
+    }
+  }, [depth]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.colorAnimationSpeed.value = colorAnimationSpeed;
+    }
+  }, [colorAnimationSpeed]);
+
+  useEffect(() => {
+    if (mesh.current) {
+      mesh.current.material.uniforms.colorInterpolationMethod.value = colorInterpolationMethod;
+    }
+  }, [colorInterpolationMethod]);
 
   useFrame((state) => {
     if (mesh.current) {
-      mesh.current.material.uniforms.time.value = state.clock.elapsedTime
-      mesh.current.material.uniforms.blendFactors.value = blendFactors
-      mesh.current.material.uniforms.blendMethod.value = blendMethod
-      mesh.current.material.uniforms.colorSet.value = colorSet
-      mesh.current.material.uniforms.useCustomColors.value = useCustomColors
-      mesh.current.material.uniforms.customColorStart.value = new THREE.Color(customColors.start)
-      mesh.current.material.uniforms.customColorMiddle.value = new THREE.Color(customColors.middle)
-      mesh.current.material.uniforms.customColorEnd.value = new THREE.Color(customColors.end)
-      mesh.current.material.uniforms.animationSpeed.value = animationSpeed
-      mesh.current.material.uniforms.elementSize.value = elementSize
-      mesh.current.material.uniforms.depth.value = depth
-      mesh.current.material.uniforms.colorAnimationSpeed.value = colorAnimationSpeed
-      mesh.current.material.uniforms.colorInterpolationMethod.value = colorInterpolationMethod
+      mesh.current.material.uniforms.time.value = state.clock.getElapsedTime();
     }
-  })
+  });
 
   return (
-    <instancedMesh ref={mesh} args={[null, null, instanceCount]}>
+    <instancedMesh ref={mesh} args={[null! as any, null! as any, instanceCount]}>
       <planeGeometry args={[1, 0.1, 1, 1]} />
       <fractalMaterial />
       <instancedBufferAttribute attach="geometry-attributes-index" args={[indices, 1]} />
     </instancedMesh>
-  )
+  );
+};
+
+interface RecordingCaptureProps {
+  isRecording: boolean;
+  onFrame: (frameData: string) => void;
+  recordingArea: RecordingResolution;
+  backgroundColor: string;
 }
 
-const RecordingCapture = ({ isRecording, onFrame, recordingArea, backgroundColor }) => {
-  const { scene, camera } = useThree()
-  const frameRef = useRef(0)
+const RecordingCapture: React.FC<RecordingCaptureProps> = ({ isRecording, onFrame, recordingArea, backgroundColor }) => {
+  const { scene, camera } = useThree();
+  const frameRef = useRef<number>(0);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      offscreenCanvasRef.current = document.createElement("canvas");
+      if (offscreenCanvasRef.current) {
+        offscreenCanvasRef.current.width = recordingArea.width;
+        offscreenCanvasRef.current.height = recordingArea.height;
+
+        rendererRef.current = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: false,
+          preserveDrawingBuffer: true,
+        });
+        
+        if (rendererRef.current) {
+          rendererRef.current.domElement = offscreenCanvasRef.current;
+          
+          const bgColor = new THREE.Color(backgroundColor);
+          rendererRef.current.setClearColor(bgColor, 1.0);
+          rendererRef.current.setSize(recordingArea.width, recordingArea.height);
+        }
+      }
+    } else {
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+        rendererRef.current = null;
+      }
+      offscreenCanvasRef.current = null;
+    }
+
+    return () => {
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+        rendererRef.current = null;
+      }
+      offscreenCanvasRef.current = null;
+    };
+  }, [isRecording, recordingArea.width, recordingArea.height, backgroundColor]);
 
   useFrame(() => {
-    if (isRecording) {
-      // Only capture every other frame to reduce load
-      frameRef.current += 1
-      if (frameRef.current % 2 !== 0) return
+    if (isRecording && rendererRef.current && offscreenCanvasRef.current) {
+      frameRef.current += 1;
+      if (frameRef.current % 2 !== 0) return;
 
-      // Create a separate renderer that doesn't affect the main canvas
-      const offscreenCanvas = document.createElement("canvas")
-      offscreenCanvas.width = recordingArea.width
-      offscreenCanvas.height = recordingArea.height
+      const bgColor = new THREE.Color(backgroundColor);
+      rendererRef.current.setClearColor(bgColor, 1.0);
+      
+      rendererRef.current.render(scene, camera);
 
-      const renderer = new THREE.WebGLRenderer({
-        canvas: offscreenCanvas,
-        antialias: true,
-        alpha: false, // Disable alpha to ensure background is included
-        preserveDrawingBuffer: true,
-      })
-
-      // Convert hex color to THREE.Color
-      const bgColor = new THREE.Color(backgroundColor)
-      renderer.setClearColor(bgColor, 1.0) // Set opacity to 1.0 (fully opaque)
-      renderer.setSize(recordingArea.width, recordingArea.height)
-      renderer.render(scene, camera)
-
-      // Get the frame data
-      const dataUrl = offscreenCanvas.toDataURL("image/png")
-      onFrame(dataUrl)
-
-      // Clean up to prevent memory leaks
-      renderer.dispose()
+      const dataUrl = offscreenCanvasRef.current.toDataURL("image/png");
+      onFrame(dataUrl);
     }
-  })
+  });
 
-  return null
+  return null;
 }
 
-// Function to download a single PNG
-function downloadSinglePng(dataUrl, filename) {
+function downloadPngSequence(frames: string[], onProgress: (progress: number) => void) {
+  return new Promise((resolve) => {
+    let downloadedCount = 0
+    const totalFrames = frames.length
+    
+    const batchSize = 5
+    let currentBatch = 0
+    
+    const processBatch = () => {
+      const startIdx = currentBatch * batchSize
+      const endIdx = Math.min(startIdx + batchSize, totalFrames)
+      
+      for (let i = startIdx; i < endIdx; i++) {
+        const paddedIndex = String(i).padStart(5, "0")
+        const filename = `fractal-frame-${paddedIndex}.png`
+
+        const link = document.createElement("a")
+        link.href = frames[i]
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        downloadedCount++
+      }
+      
+      onProgress(Math.floor((downloadedCount / totalFrames) * 100))
+      
+      currentBatch++
+      if (startIdx + batchSize < totalFrames) {
+        setTimeout(processBatch, 300)
+      } else {
+        resolve(true)
+      }
+    }
+    
+    processBatch()
+  })
+}
+
+async function createVideo(frames: string[], format: 'mp4' | 'webm', frameRate: number, onProgress: (progress: number) => void, bitrate = 8) {
+  return new Promise<string>(async (resolve, reject) => {
+    try {
+      const canvas = document.createElement("canvas")
+      const img = new Image()
+      
+      canvas.width = 1920
+      canvas.height = 1080
+      const ctx = canvas.getContext("2d")
+      
+      if (!ctx) {
+        reject(new Error("Could not get canvas context"))
+        return
+      }
+
+      const mimeTypes: { [key: string]: string } = {
+        webm: "video/webm",
+        mp4: "video/mp4",
+      };
+
+      const encoderOptions: { [key: string]: any } = {
+        webm: ["vp9", {
+          framerate: frameRate,
+          bitrate: bitrate * 1000000,
+          width: canvas.width,
+          height: canvas.height,
+        }],
+        mp4: ["avc1.42E01E", { 
+          framerate: frameRate,
+          bitrate: bitrate * 1000000,
+          width: canvas.width,
+          height: canvas.height,
+        }],
+      };
+      
+      await new Promise<void>((resolveFirstFrame) => {
+        img.onload = () => {
+          canvas.width = img.width
+          canvas.height = img.height
+          resolveFirstFrame()
+        }
+        img.src = frames[0]
+      })
+
+      const stream = canvas.captureStream(frameRate)
+      const recorder = new MediaRecorder(stream, {
+        mimeType: mimeTypes[format],
+        videoBitsPerSecond: bitrate * 1000000,
+      })
+
+      const chunks: Blob[] = []
+
+      recorder.ondataavailable = (e: BlobEvent) => {
+        if (e.data && e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      }
+
+      recorder.onstop = () => {
+        const videoBlob = new Blob(chunks, { type: mimeTypes[format] })
+        const videoUrl = URL.createObjectURL(videoBlob)
+        resolve(videoUrl)
+      }
+
+      recorder.start()
+
+      const batchSize = 10
+      let processedCount = 0
+      
+      for (let i = 0; i < frames.length; i += batchSize) {
+        const batch = frames.slice(i, i + batchSize)
+        
+        for (const frame of batch) {
+          try {
+            await new Promise<void>((resolveFrame) => {
+              img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.drawImage(img, 0, 0)
+                resolveFrame()
+              }
+              img.onerror = () => {
+                console.error("Error loading image", frame)
+                resolveFrame()
+              }
+              img.src = frame
+            })
+            
+            processedCount++
+            onProgress(processedCount / frames.length)
+          } catch (err) {
+            console.error("Error processing frame", err)
+          }
+        }
+        
+        await new Promise((r) => setTimeout(r, 1))
+      }
+
+      recorder.stop()
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+function downloadSinglePng(dataUrl: string, filename: string) {
   const link = document.createElement("a")
   link.href = dataUrl
   link.download = filename
@@ -299,155 +595,12 @@ function downloadSinglePng(dataUrl, filename) {
   document.body.removeChild(link)
 }
 
-// Function to download multiple PNGs as a sequence
-function downloadPngSequence(frames, onProgress) {
-  return new Promise((resolve) => {
-    // Create a counter for downloaded files
-    let downloadedCount = 0
-    const totalFrames = frames.length
-
-    // Create a zip-like structure (in this case, we'll just download each file)
-    frames.forEach((frame, index) => {
-      const paddedIndex = String(index).padStart(5, "0")
-      const filename = `fractal-frame-${paddedIndex}.png`
-
-      // Create a link for each frame
-      const link = document.createElement("a")
-      link.href = frame
-      link.download = filename
-
-      // Delay each download slightly to prevent browser issues
-      setTimeout(() => {
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        // Update progress
-        downloadedCount++
-        onProgress(Math.floor((downloadedCount / totalFrames) * 100))
-
-        // Resolve when all downloads are complete
-        if (downloadedCount === totalFrames) {
-          resolve(true)
-        }
-      }, index * 100) // Stagger downloads
-    })
-  })
-}
-
-// Function to create a video from frames with improved encoding
-async function createVideo(frames, format, frameRate, onProgress, bitrate = 8) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Create a canvas to draw frames on
-      const canvas = document.createElement("canvas")
-      const ctx = canvas.getContext("2d")
-
-      // Load the first frame to get dimensions
-      const firstFrameImg = new Image()
-      firstFrameImg.crossOrigin = "anonymous"
-
-      firstFrameImg.onload = async () => {
-        // Set canvas size to match frame dimensions
-        canvas.width = firstFrameImg.width
-        canvas.height = firstFrameImg.height
-
-        // Determine the best codec options available
-        const mimeTypes = {
-          webm: [
-            "video/webm;codecs=vp9,opus", // VP9 (better quality)
-            "video/webm;codecs=vp8,opus", // VP8 (more compatible)
-            "video/webm", // Default
-          ],
-          mp4: [
-            "video/mp4;codecs=h264,aac", // H.264 (standard)
-            "video/mp4", // Default
-          ],
-        }
-
-        // Find the first supported mime type
-        const supportedMimeType =
-          mimeTypes[format].find((type) => {
-            try {
-              return MediaRecorder.isTypeSupported(type)
-            } catch (e) {
-              return false
-            }
-          }) || "video/webm" // Fallback to WebM
-
-        console.log(`Using codec: ${supportedMimeType}`)
-
-        // Create a MediaRecorder with high quality settings
-        const stream = canvas.captureStream(frameRate)
-        const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: supportedMimeType,
-          videoBitsPerSecond: bitrate * 1000000, // Convert Mbps to bps
-        })
-
-        const chunks = []
-
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            chunks.push(e.data)
-          }
-        }
-
-        mediaRecorder.onstop = () => {
-          // Create a blob from all chunks
-          const blob = new Blob(chunks, { type: supportedMimeType })
-          onProgress(100)
-
-          // Add codec info to the result
-          resolve({
-            blob,
-            codec: supportedMimeType,
-            extension: supportedMimeType.includes("mp4") ? "mp4" : "webm",
-          })
-        }
-
-        // Start recording
-        mediaRecorder.start()
-
-        // Draw each frame on the canvas with a delay
-        for (let i = 0; i < frames.length; i++) {
-          // Update progress
-          onProgress(Math.floor((i / frames.length) * 90))
-
-          // Load and draw the current frame
-          await new Promise((resolve) => {
-            const img = new Image()
-            img.crossOrigin = "anonymous"
-            img.onload = () => {
-              ctx.clearRect(0, 0, canvas.width, canvas.height)
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-              resolve()
-            }
-            img.src = frames[i]
-          })
-
-          // Wait for the appropriate frame duration
-          await new Promise((resolve) => setTimeout(resolve, 1000 / frameRate))
-        }
-
-        // Stop recording after all frames are processed
-        mediaRecorder.stop()
-      }
-
-      // Load the first frame
-      firstFrameImg.src = frames[0]
-    } catch (error) {
-      console.error("Error creating video:", error)
-      reject(error)
-    }
-  })
-}
-
 export default function FractalGenerator() {
   const [blendFactors, setBlendFactors] = useState(new THREE.Vector3(0.33, 0.33, 0.34))
   const [blendMethod, setBlendMethod] = useState(0)
   const [colorSet, setColorSet] = useState(0)
   const [useCustomColors, setUseCustomColors] = useState(false)
-  const [customColors, setCustomColors] = useState({
+  const [customColors, setCustomColors] = useState<CustomColors>({
     start: "#000000",
     middle: "#7F7F7F",
     end: "#FFFFFF",
@@ -462,15 +615,15 @@ export default function FractalGenerator() {
   const [isRecording, setIsRecording] = useState(false)
   const [exportFormat, setExportFormat] = useState("png-sequence")
   const [exportProgress, setExportProgress] = useState(0)
-  const [recordingFrames, setRecordingFrames] = useState([])
+  const [recordingFrames, setRecordingFrames] = useState<string[]>([])
   const [recordingDuration, setRecordingDuration] = useState(5)
   const [showRecordingControls, setShowRecordingControls] = useState(false)
-  const [recordingResolution, setRecordingResolution] = useState({ width: 1920, height: 1080 })
+  const [recordingResolution, setRecordingResolution] = useState<RecordingResolution>({ width: 1920, height: 1080 })
   const [isExporting, setIsExporting] = useState(false)
   const [frameRate, setFrameRate] = useState(24)
   const [videoBitrate, setVideoBitrate] = useState(8)
 
-  const updateBlendFactor = (index, value) => {
+  const updateBlendFactor = (index: number, value: number) => {
     const newFactors = blendFactors.clone()
     newFactors.setComponent(index, value)
     const sum = newFactors.x + newFactors.y + newFactors.z
@@ -478,17 +631,30 @@ export default function FractalGenerator() {
     setBlendFactors(newFactors)
   }
 
-  const updateCustomColor = (key, value) => {
-    setCustomColors((prev) => ({ ...prev, [key]: value }))
+  const handleCustomColorChange = (colorKey: keyof CustomColors, value: string) => {
+    setCustomColors(prev => ({
+      ...prev,
+      [colorKey]: value
+    }));
   }
 
-  const updateResolution = (dimension, value) => {
+  const updateResolution = (dimension: keyof RecordingResolution, value: string) => {
     const numValue = Number.parseInt(value, 10)
-    if (!isNaN(numValue) && numValue > 0) {
-      setRecordingResolution((prev) => ({
+    
+    if (!isNaN(numValue) && numValue > 0 && numValue <= 8192) {
+      setRecordingResolution((prev: RecordingResolution) => ({
         ...prev,
-        [dimension]: numValue,
-      }))
+        [dimension]: numValue
+      }));
+    } else {
+      console.warn(`Invalid ${dimension} value: ${value}. Must be a positive number between 1 and 8192.`)
+      if (isNaN(numValue) || numValue <= 0) {
+        const defaultValue = dimension === "width" ? 1920 : 1080
+        setRecordingResolution((prev: RecordingResolution) => ({
+          ...prev,
+          [dimension]: defaultValue
+        }));
+      }
     }
   }
 
@@ -503,15 +669,13 @@ export default function FractalGenerator() {
   }, [])
 
   const captureFrame = useCallback(
-    (frameData) => {
-      setRecordingFrames((prev) => [...prev, frameData])
+    (frameData: string) => {
+      setRecordingFrames((prev: string[]) => [...prev, frameData])
 
-      // Calculate progress based on expected frames
       const expectedFrames = recordingDuration * frameRate
       const progress = Math.min(100, (recordingFrames.length / expectedFrames) * 100)
       setExportProgress(progress)
-
-      // Auto-stop after reaching the duration
+      
       if (recordingFrames.length >= expectedFrames) {
         stopRecording()
       }
@@ -519,52 +683,69 @@ export default function FractalGenerator() {
     [recordingFrames.length, recordingDuration, frameRate, stopRecording],
   )
 
-  const exportRecording = useCallback(async () => {
-    if (recordingFrames.length === 0) return
+  const handleExport = useCallback(async () => {
+    if (recordingFrames.length === 0) {
+      alert("No frames to export")
+      return
+    }
 
     setIsExporting(true)
+    let result: string | Blob
+    let filename = ""
+
     setExportProgress(0)
 
-    try {
-      let result, filename
-
-      if (exportFormat === "png-sequence") {
-        // Export all frames as individual PNGs
-        await downloadPngSequence(recordingFrames, setExportProgress)
-        setIsExporting(false)
-        return
-      } else if (exportFormat === "png") {
-        // Export just the first frame as a high-quality PNG
-        downloadSinglePng(recordingFrames[0], `fractal-frame-${Date.now()}.png`)
-        setExportProgress(100)
-        setIsExporting(false)
-        return
-      } else if (exportFormat === "webm" || exportFormat === "mp4") {
-        // Create video file with improved encoding
-        result = await createVideo(recordingFrames, exportFormat, frameRate, setExportProgress, videoBitrate)
-        filename = `fractal-animation-${Date.now()}.${result.extension}`
-
-        // Show codec information
-        console.log(`Video created with codec: ${result.codec}`)
-      }
-
-      // Download the file
-      if (result && result.blob) {
-        const url = URL.createObjectURL(result.blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }
-    } catch (error) {
-      console.error("Error exporting recording:", error)
-    } finally {
+    if (exportFormat === "png") {
+      await downloadPngSequence(recordingFrames, setExportProgress)
+      setExportProgress(1)
       setIsExporting(false)
+      return
+    } else if (exportFormat === "webm" || exportFormat === "mp4") {
+      const videoUrl = await createVideo(recordingFrames, exportFormat, frameRate, setExportProgress, videoBitrate)
+      filename = `fractal-animation-${Date.now()}.${exportFormat}`
+
+      const link = document.createElement("a")
+      link.href = videoUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      setTimeout(() => URL.revokeObjectURL(videoUrl), 100)
+      
+      console.log(`Video created with codec: ${exportFormat}`)
     }
+
+    setIsExporting(false)
   }, [recordingFrames, exportFormat, frameRate, videoBitrate])
+
+  const handleFormatChange = (value: string) => {
+    setExportFormat(value as 'png' | 'webm' | 'mp4' | 'png-sequence');
+  };
+
+  const handleBitrateChange = (value: number) => {
+    setVideoBitrate(value);
+  };
+
+  const handleFrameRateChange = (value: number) => {
+    setFrameRate(value);
+  };
+
+  const handleElementSizeChange = (value: number) => {
+    setElementSize(value);
+  };
+
+  const handleDepthChange = (value: number) => {
+    setDepth(value);
+  };
+
+  const handleColorAnimationSpeedChange = (value: number) => {
+    setColorAnimationSpeed(value);
+  };
+
+  const handleColorSchemeChange = (index: number) => {
+    setColorInterpolationMethod(index);
+  };
 
   return (
     <div className="relative w-full h-screen" style={{ backgroundColor }}>
@@ -674,7 +855,7 @@ export default function FractalGenerator() {
                         max={0.1}
                         step={0.01}
                         value={[elementSize]}
-                        onValueChange={(value) => setElementSize(value[0])}
+                        onValueChange={(value) => handleElementSizeChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{elementSize.toFixed(2)}</span>
@@ -686,7 +867,7 @@ export default function FractalGenerator() {
                         max={2}
                         step={0.1}
                         value={[depth]}
-                        onValueChange={(value) => setDepth(value[0])}
+                        onValueChange={(value) => handleDepthChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{depth.toFixed(1)}</span>
@@ -707,10 +888,10 @@ export default function FractalGenerator() {
                         {["start", "middle", "end"].map((key) => (
                           <div key={key} className="flex items-center mb-2">
                             <Label className="w-16 capitalize">{key}</Label>
-                            <input
+                            <Input
                               type="color"
-                              value={customColors[key]}
-                              onChange={(e) => updateCustomColor(key, e.target.value)}
+                              value={customColors[key as keyof CustomColors]}
+                              onChange={(e) => handleCustomColorChange(key as keyof CustomColors, e.target.value)}
                               className="w-8 h-8 p-0 border-none"
                             />
                           </div>
@@ -740,7 +921,7 @@ export default function FractalGenerator() {
                         max={5}
                         step={0.1}
                         value={[colorAnimationSpeed]}
-                        onValueChange={(value) => setColorAnimationSpeed(value[0])}
+                        onValueChange={(value) => handleColorAnimationSpeedChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{colorAnimationSpeed.toFixed(1)}</span>
@@ -751,7 +932,7 @@ export default function FractalGenerator() {
                         {["Linear", "Smooth"].map((method, index) => (
                           <Button
                             key={method}
-                            onClick={() => setColorInterpolationMethod(index)}
+                            onClick={() => handleColorSchemeChange(index)}
                             variant={colorInterpolationMethod === index ? "default" : "outline"}
                             size="sm"
                           >
@@ -763,7 +944,7 @@ export default function FractalGenerator() {
                     <div>
                       <h4 className="mb-2 font-semibold">Background Color</h4>
                       <div className="flex items-center space-x-2">
-                        <input
+                        <Input
                           type="color"
                           value={backgroundColor}
                           onChange={(e) => setBackgroundColor(e.target.value)}
@@ -787,7 +968,7 @@ export default function FractalGenerator() {
               <div className="space-y-4">
                 <div>
                   <h4 className="mb-2 font-semibold">Export Format</h4>
-                  <Select value={exportFormat} onValueChange={setExportFormat}>
+                  <Select value={exportFormat} onValueChange={handleFormatChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select format" />
                     </SelectTrigger>
@@ -832,7 +1013,7 @@ export default function FractalGenerator() {
                       max={60}
                       step={1}
                       value={[frameRate]}
-                      onValueChange={(value) => setFrameRate(value[0])}
+                      onValueChange={(value) => handleFrameRateChange(value[0])}
                       className="w-full"
                     />
                     <span className="w-12 text-right text-sm">{frameRate} fps</span>
@@ -847,7 +1028,7 @@ export default function FractalGenerator() {
                       max={16}
                       step={1}
                       value={[videoBitrate]}
-                      onValueChange={(value) => setVideoBitrate(value[0])}
+                      onValueChange={(value) => handleBitrateChange(value[0])}
                       className="w-full"
                       disabled={exportFormat !== "webm" && exportFormat !== "mp4"}
                     />
@@ -890,7 +1071,7 @@ export default function FractalGenerator() {
                   )}
 
                   <Button
-                    onClick={exportRecording}
+                    onClick={handleExport}
                     variant="outline"
                     disabled={recordingFrames.length === 0 || isRecording || isExporting}
                     className="flex-1"
@@ -934,4 +1115,3 @@ export default function FractalGenerator() {
     </div>
   )
 }
-
