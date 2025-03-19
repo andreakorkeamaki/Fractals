@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractal Animation Standalone</title>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #root {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      text-align: center;
+    }
+    pre {
+      text-align: left;
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .steps {
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="container">
+      <h1>Fractal Animation Standalone</h1>
+      <p>This is a standalone HTML file to help diagnose the React Three Fiber compatibility issues.</p>
+      
+      <h2>Recommended Solution</h2>
+      <p>The error you're seeing is a common issue when using React Three Fiber with Next.js. Here are the steps to fix it:</p>
+      
+      <div class="steps">
+        <h3>Option 1: Fix Next.js Configuration</h3>
+        <ol>
+          <li>Use the <code>next.config.js</code> file I created which properly configures webpack for Three.js</li>
+          <li>Use the updated <code>ClientFractalWrapper.tsx</code> component that properly handles dynamic imports</li>
+          <li>Run <code>npm install three@0.160.0 @react-three/fiber@8.15.16 @react-three/drei@9.99.4 --legacy-peer-deps</code> to ensure compatible versions</li>
+          <li>Restart your development server with <code>npm run dev</code></li>
+        </ol>
+        
+        <h3>Option 2: Create a Vite Project (Recommended)</h3>
+        <p>For better compatibility with React Three Fiber, consider using Vite instead of Next.js:</p>
+        <pre>npm create vite@latest fractal-vite -- --template react-ts
+cd fractal-vite
+npm install
+npm install three @react-three/fiber @react-three/drei
+# Copy your fractal code files
+npm run dev</pre>
+      </div>
+      
+      <h2>Technical Explanation</h2>
+      <p>The error <code>Cannot read properties of undefined (reading 'ReactCurrentOwner')</code> occurs because:</p>
+      <ul>
+        <li>React Three Fiber needs access to React internals that aren't properly initialized in Next.js's server-side rendering environment</li>
+        <li>The dynamic import with <code>ssr: false</code> should help, but there may be other initialization issues</li>
+        <li>Next.js's webpack configuration needs special handling for Three.js</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

@@ -240,3 +240,5 @@ export function FractalGenerator() {
     </div>
   );
 }
+
+export default FractalGenerator;
