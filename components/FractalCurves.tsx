@@ -1,3 +1,5 @@
+/// <reference path="../types/leva.d.ts" />
+
 import React, { useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame, extend } from "@react-three/fiber"
@@ -222,9 +224,9 @@ export function FractalCurves({
   colorAnimationSpeed,
   colorInterpolationMethod,
 }: FractalCurvesProps) {
-  const geom = React.useRef<THREE.BufferGeometry>(null);
+  const geom = React.useRef<THREE.BufferGeometry | null>(null);
   const matRef = React.useRef<any>(null);
-  const meshRef = React.useRef<THREE.InstancedMesh>(null);
+  const meshRef = React.useRef<THREE.InstancedMesh | null>(null);
   const numElements = 5000;
 
   useEffect(() => {

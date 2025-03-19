@@ -1,3 +1,5 @@
+/// <reference path="./types/leva.d.ts" />
+
 // Aggiungere dichiarazioni di tipo per i moduli mancanti all'inizio del file
 "use client"
 
@@ -5,21 +7,19 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from "@react-three/fiber"
 import { OrbitControls, shaderMaterial } from "@react-three/drei"
-// @ts-ignore
 import { useControls, button, folder } from "leva"
-// @ts-ignore
 import { saveAs } from "file-saver"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "./components/ui/button"
+import { Switch } from "./components/ui/switch"
+import { Label } from "./components/ui/label"
+import { Slider } from "./components/ui/slider"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { Settings, Palette, Download, Square, Video as Record } from "lucide-react"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select"
+import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
+import { Progress } from "./components/ui/progress"
+import { Input } from "./components/ui/input"
 
 declare global {
   namespace JSX {
@@ -28,15 +28,6 @@ declare global {
       planeGeometry: any;
       fractalMaterial: any;
       instancedBufferAttribute: any;
-      div: any;
-      span: any;
-      h4: any;
-      p: any;
-      button: any;
-      input: any;
-      label: any;
-      select: any;
-      option: any;
     }
   }
 }
@@ -68,6 +59,30 @@ interface CustomColors {
   middle: string;
   end: string;
   [key: string]: string;
+}
+
+// Define a custom interface for the fractal material with uniforms
+interface FractalMaterialType extends THREE.ShaderMaterial {
+  uniforms: {
+    time: { value: number };
+    blendFactors: { value: THREE.Vector3 };
+    blendMethod: { value: number };
+    colorSet: { value: number };
+    useCustomColors: { value: boolean };
+    customColorStart: { value: THREE.Color };
+    customColorMiddle: { value: THREE.Color };
+    customColorEnd: { value: THREE.Color };
+    animationSpeed: { value: number };
+    elementSize: { value: number };
+    depth: { value: number };
+    colorAnimationSpeed: { value: number };
+    colorInterpolationMethod: { value: number };
+  };
+}
+
+// Define a custom interface for the mesh with our custom material
+interface FractalInstancedMesh extends THREE.InstancedMesh {
+  material: FractalMaterialType;
 }
 
 const FractalMaterial = shaderMaterial(
@@ -266,7 +281,7 @@ const FractalCurves: React.FC<FractalCurvesProps> = ({
   colorAnimationSpeed,
   colorInterpolationMethod,
 }) => {
-  const mesh = useRef<THREE.InstancedMesh>(null);
+  const mesh = useRef<FractalInstancedMesh | null>(null);
   const instanceCount = 5000;
 
   const indices = useMemo(() => {
@@ -814,7 +829,7 @@ export default function FractalGenerator() {
                             max={1}
                             step={0.01}
                             value={[blendFactors.getComponent(index)]}
-                            onValueChange={(value) => updateBlendFactor(index, value[0])}
+                            onValueChange={(value: number[]) => updateBlendFactor(index, value[0])}
                             className="w-32"
                           />
                           <span className="w-12 text-right text-sm">{blendFactors.getComponent(index).toFixed(2)}</span>
@@ -843,7 +858,7 @@ export default function FractalGenerator() {
                         max={5}
                         step={0.1}
                         value={[animationSpeed]}
-                        onValueChange={(value) => setAnimationSpeed(value[0])}
+                        onValueChange={(value: number[]) => setAnimationSpeed(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{animationSpeed.toFixed(1)}</span>
@@ -855,7 +870,7 @@ export default function FractalGenerator() {
                         max={0.1}
                         step={0.01}
                         value={[elementSize]}
-                        onValueChange={(value) => handleElementSizeChange(value[0])}
+                        onValueChange={(value: number[]) => handleElementSizeChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{elementSize.toFixed(2)}</span>
@@ -867,7 +882,7 @@ export default function FractalGenerator() {
                         max={2}
                         step={0.1}
                         value={[depth]}
-                        onValueChange={(value) => handleDepthChange(value[0])}
+                        onValueChange={(value: number[]) => handleDepthChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{depth.toFixed(1)}</span>
@@ -891,7 +906,7 @@ export default function FractalGenerator() {
                             <Input
                               type="color"
                               value={customColors[key as keyof CustomColors]}
-                              onChange={(e) => handleCustomColorChange(key as keyof CustomColors, e.target.value)}
+                              onChange={(e: { target: { value: string } }) => handleCustomColorChange(key as keyof CustomColors, e.target.value)}
                               className="w-8 h-8 p-0 border-none"
                             />
                           </div>
@@ -921,7 +936,7 @@ export default function FractalGenerator() {
                         max={5}
                         step={0.1}
                         value={[colorAnimationSpeed]}
-                        onValueChange={(value) => handleColorAnimationSpeedChange(value[0])}
+                        onValueChange={(value: number[]) => handleColorAnimationSpeedChange(value[0])}
                         className="w-full"
                       />
                       <span className="text-sm">{colorAnimationSpeed.toFixed(1)}</span>
@@ -947,7 +962,7 @@ export default function FractalGenerator() {
                         <Input
                           type="color"
                           value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          onChange={(e: { target: { value: string } }) => setBackgroundColor(e.target.value)}
                           className="w-8 h-8 p-0 border-none"
                         />
                         <span className="text-sm">{backgroundColor}</span>
@@ -988,7 +1003,11 @@ export default function FractalGenerator() {
                     <Input
                       type="number"
                       value={recordingResolution.width}
-                      onChange={(e) => updateResolution("width", e.target.value)}
+                      onChange={(e: { target: { value: string } }) => {
+                        const { target } = e;
+                        const { value } = target;
+                        updateResolution("width", value);
+                      }}
                       className="w-24"
                     />
                     <span className="text-sm">px</span>
@@ -998,7 +1017,11 @@ export default function FractalGenerator() {
                     <Input
                       type="number"
                       value={recordingResolution.height}
-                      onChange={(e) => updateResolution("height", e.target.value)}
+                      onChange={(e: { target: { value: string } }) => {
+                        const { target } = e;
+                        const { value } = target;
+                        updateResolution("height", value);
+                      }}
                       className="w-24"
                     />
                     <span className="text-sm">px</span>
@@ -1013,7 +1036,7 @@ export default function FractalGenerator() {
                       max={60}
                       step={1}
                       value={[frameRate]}
-                      onValueChange={(value) => handleFrameRateChange(value[0])}
+                      onValueChange={(value: number[]) => handleFrameRateChange(value[0])}
                       className="w-full"
                     />
                     <span className="w-12 text-right text-sm">{frameRate} fps</span>
@@ -1028,7 +1051,7 @@ export default function FractalGenerator() {
                       max={16}
                       step={1}
                       value={[videoBitrate]}
-                      onValueChange={(value) => handleBitrateChange(value[0])}
+                      onValueChange={(value: number[]) => handleBitrateChange(value[0])}
                       className="w-full"
                       disabled={exportFormat !== "webm" && exportFormat !== "mp4"}
                     />
@@ -1047,7 +1070,7 @@ export default function FractalGenerator() {
                       max={30}
                       step={1}
                       value={[recordingDuration]}
-                      onValueChange={(value) => setRecordingDuration(value[0])}
+                      onValueChange={(value: number[]) => setRecordingDuration(value[0])}
                       className="w-full"
                     />
                     <span className="w-12 text-right text-sm">{recordingDuration}s</span>

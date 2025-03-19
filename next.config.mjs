@@ -21,6 +21,10 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // Add transpilePackages to handle Three.js and React Three Fiber
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
+  // Disable React strict mode to avoid double rendering issues with Three.js
+  reactStrictMode: false,
 }
 
 mergeConfig(nextConfig, userConfig)

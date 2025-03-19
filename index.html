@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractal Animation</title>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/@react-three/fiber@8.15.16/dist/react-three-fiber.min.js"></script>
+  <script src="https://unpkg.com/@react-three/drei@9.99.4/index.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #root {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    // Simple message to indicate the page is loaded
+    document.getElementById('root').innerHTML = 
+      '<div style="padding: 20px; font-family: Arial, sans-serif;">' +
+      '<h1>Fractal Animation Viewer</h1>' +
+      '<p>This is a simplified viewer for the fractal animation. Due to the complexity of the Three.js and React integration, ' +
+      'we recommend running this project using a development server like Vite or Create React App instead of Next.js.</p>' +
+      '<p>To run this project with Vite:</p>' +
+      '<ol>' +
+      '<li>Install Vite: <code>npm install -g vite</code></li>' +
+      '<li>Create a new Vite project: <code>npm create vite@latest fractal-app -- --template react-ts</code></li>' +
+      '<li>Copy your fractal animation code to the new project</li>' +
+      '<li>Install dependencies: <code>npm install three @react-three/fiber @react-three/drei</code></li>' +
+      '<li>Start the development server: <code>npm run dev</code></li>' +
+      '</ol>' +
+      '</div>';
+  </script>
+</body>
+</html>

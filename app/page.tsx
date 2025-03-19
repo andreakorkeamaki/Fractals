@@ -1,7 +1,7 @@
 "use client"
 
-import FractalGenerator from "../fractal-blend-enhanced-animation"
+import ClientFractalWrapper from "../components/ClientFractalWrapper"
 
 export default function SyntheticV0PageForDeployment() {
-  return <FractalGenerator />
+  return <ClientFractalWrapper />
 }
